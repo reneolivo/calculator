@@ -1,6 +1,6 @@
 import * as operations from './operations';
-import BinaryOperation from './binary-operation';
 import CalculatorForSpecificOperations from './calculator-for-specific-operations';
+import TokensWalker from './tokens-walker';
 
 export default class Calculator {
   static orderOfOperations = [
@@ -21,14 +21,10 @@ export default class Calculator {
   }
 
   static _executeOrderOfOperationsOnTokens(tokens) {
-    this.orderOfOperations.forEach((operationsForThisOrder) => {
-      for(var i = 0; i < tokens.length; i += 2) {
-        let binaryOperation = new BinaryOperation({
-          lefthandValue: tokens[i],
-          operator: tokens[i + 1],
-          righthandValue: tokens[i + 2]
-        });
+    let tokensWalker = new TokensWalker(tokens);
 
+    this.orderOfOperations.forEach((operationsForThisOrder) => {
+      tokensWalker.walk((binaryOperation) => {
         let calculator = new CalculatorForSpecificOperations(
           binaryOperation,
           operationsForThisOrder
@@ -37,12 +33,9 @@ export default class Calculator {
         calculator.calculate();
 
         if (calculator.isResolved) {
-          tokens[i] = calculator.value;
-          tokens.splice(i + 1, 2);
-          i -= 2;
+          tokensWalker.replaceValueAtCurrentIndex(calculator.value);
         }
-      }
+      });
     });
   }
-
 }
